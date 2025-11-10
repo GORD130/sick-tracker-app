@@ -177,4 +177,19 @@ export class UserService {
       .orderBy('first_name', 'asc')
       .execute()
   }
+  static async getAllRoles() {
+    return await db
+      .selectFrom('roles')
+      .selectAll()
+      .orderBy('id', 'asc')
+      .execute()
+  }
+
+  static async getAllStations() {
+    return await db
+      .selectFrom('stations')
+      .selectAll()
+      .orderBy('id', 'asc')
+      .execute()
+  }
 }

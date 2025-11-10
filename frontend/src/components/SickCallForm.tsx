@@ -65,22 +65,18 @@ const SickCallForm: React.FC = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // In a real app, you'd fetch current user from auth context
-        const mockCurrentUser: User = {
-          id: 1,
-          employee_id: 'MANAGER001',
-          first_name: 'John',
-          last_name: 'Manager',
-          station_id: 1
-        }
-        setCurrentUser(mockCurrentUser)
-        setFormData(prev => ({ ...prev, reporting_officer_id: mockCurrentUser.id }))
-
-        // Fetch users
+        // Fetch users first to get available reporting officers
         const usersResponse = await fetch('/api/users/active')
         if (usersResponse.ok) {
           const usersData = await usersResponse.json()
           setUsers(usersData)
+          
+          // Set the first available user as the current user and reporting officer
+          if (usersData.length > 0) {
+            const firstUser = usersData[0]
+            setCurrentUser(firstUser)
+            setFormData(prev => ({ ...prev, reporting_officer_id: firstUser.id }))
+          }
         }
 
         // Fetch absence types (mock data for now)
@@ -170,7 +166,21 @@ const SickCallForm: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit}>
-        <Field required label="Employee">
+        <Field required label="Reporting Officer">
+          <Select
+            value={formData.reporting_officer_id}
+            onChange={(_, data) => handleInputChange('reporting_officer_id', parseInt(data.value))}
+          >
+            <option value={0}>Select Reporting Officer</option>
+            {users.map(user => (
+              <option key={user.id} value={user.id}>
+                {user.first_name} {user.last_name} ({user.employee_id})
+              </option>
+            ))}
+          </Select>
+        </Field>
+
+        <Field required label="Employee" style={{ marginTop: '1rem' }}>
           <Select
             value={formData.employee_id}
             onChange={(_, data) => handleInputChange('employee_id', parseInt(data.value))}
@@ -276,10 +286,10 @@ const SickCallForm: React.FC = () => {
           <Button appearance="secondary" type="button">
             Cancel
           </Button>
-          <Button 
-            appearance="primary" 
-            type="submit" 
-            disabled={loading || !formData.employee_id || !formData.absence_type_id}
+          <Button
+            appearance="primary"
+            type="submit"
+            disabled={loading || !formData.reporting_officer_id || !formData.employee_id || !formData.absence_type_id}
           >
             {loading ? <Spinner size="tiny" /> : 'Submit Sick Call'}
           </Button>

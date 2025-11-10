@@ -205,4 +205,26 @@ router.get('/station/:stationId', async (req, res) => {
   }
 })
 
+// GET /api/users/roles/all - Get all roles
+router.get('/roles/all', async (_req, res) => {
+  try {
+    const roles = await UserService.getAllRoles()
+    res.json(roles)
+  } catch (error) {
+    console.error('Error fetching roles:', error)
+    res.status(500).json({ error: 'Failed to fetch roles' })
+  }
+})
+
+// GET /api/users/stations/all - Get all stations
+router.get('/stations/all', async (_req, res) => {
+  try {
+    const stations = await UserService.getAllStations()
+    res.json(stations)
+  } catch (error) {
+    console.error('Error fetching stations:', error)
+    res.status(500).json({ error: 'Failed to fetch stations' })
+  }
+})
+
 export default router

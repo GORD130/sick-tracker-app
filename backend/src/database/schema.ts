@@ -54,6 +54,7 @@ export interface UserTable {
   station_id: number | null
   platoon: 'A' | 'B' | 'C' | 'Admin' | null
   shift_pattern: '24_48' | 'M_F' | null
+  password_hash: string | null
   is_active: boolean
   created_at: Generated<Date>
   updated_at: Generated<Date>
