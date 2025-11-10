@@ -1,0 +1,50 @@
+.App {
+  text-align: left;
+  min-height: 100vh;
+}
+
+.App-header {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.App-header h1 {
+  margin: 0;
+  color: #0078d4;
+}
+
+.App-header p {
+  margin: 0.5rem 0 0 0;
+  color: #666;
+}
+
+main {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Form styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Card styles */
+.ms-Card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+/* Responsive grid */
+@media (max-width: 768px) {
+  main {
+    padding: 1rem;
+  }
+  
+  .grid-2-col {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "fluentui-frontend",
+  "version": "1.0.0",
+  "description": "Frontend FluentUI application",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@fluentui/react-components": "^9.46.7",
+    "@fluentui/react-icons": "^2.0.217"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@vitejs/plugin-react": "^4.1.1",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0"
+  },
+  "keywords": ["react", "fluentui", "typescript", "vite"],
+  "author": "",
+  "license": "MIT"
+}

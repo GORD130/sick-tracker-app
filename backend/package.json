@@ -1,0 +1,45 @@
+{
+  "name": "fluentui-backend",
+  "version": "1.0.0",
+  "description": "Backend API for FluentUI application",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "migrate": "kysely-ctl migrate",
+    "migrate:latest": "kysely-ctl migrate:latest",
+    "migrate:down": "kysely-ctl migrate:down",
+    "migrate:create": "kysely-ctl migrate:create"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "kysely": "^0.27.3",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.3",
+    "redis": "^4.6.10",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.8.10",
+    "@types/pg": "^8.10.9",
+    "kysely-ctl": "^0.3.0",
+    "tsx": "^4.6.2",
+    "typescript": "^5.2.2"
+  },
+  "keywords": [
+    "express",
+    "typescript",
+    "postgresql",
+    "kysely",
+    "redis"
+  ],
+  "author": "",
+  "license": "MIT"
+}
