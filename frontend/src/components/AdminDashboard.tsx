@@ -566,7 +566,6 @@ const AdminDashboard: React.FC = () => {
                   >
                     <Option value="">Select Shift Pattern</Option>
                     <Option value="24_48">24/48</Option>
-                    <Option value="24_48">24/48</Option>
                     <Option value="M_F">Monday-Friday</Option>
                   </Select>
                 </Field>

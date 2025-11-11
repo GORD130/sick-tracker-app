@@ -192,4 +192,43 @@ export class UserService {
       .orderBy('id', 'asc')
       .execute()
   }
+
+  static async updateUserStatus(id: number, isActive: boolean): Promise<User | null> {
+    const result = await db
+      .updateTable('users')
+      .set({
+        is_active: isActive,
+        updated_at: new Date()
+      })
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirst()
+
+    return result || null
+  }
+
+  static async createStation(stationData: {
+    name: string
+    code: string
+    address: string | null
+    is_active: boolean
+  }) {
+    return await db
+      .insertInto('stations')
+      .values(stationData)
+      .returningAll()
+      .executeTakeFirstOrThrow()
+  }
+
+  static async createRole(roleData: {
+    name: string
+    description: string | null
+    permissions: any
+  }) {
+    return await db
+      .insertInto('roles')
+      .values(roleData)
+      .returningAll()
+      .executeTakeFirstOrThrow()
+  }
 }

@@ -227,4 +227,91 @@ router.get('/stations/all', async (_req, res) => {
   }
 })
 
+// PUT /api/users/:id/status - Update user status
+router.put('/:id/status', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id)
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid user ID' })
+    }
+
+    const { is_active } = req.body
+    if (typeof is_active !== 'boolean') {
+      return res.status(400).json({ error: 'is_active must be a boolean' })
+    }
+
+    const user = await UserService.updateUserStatus(id, is_active)
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.json({ success: true, message: `User ${is_active ? 'activated' : 'deactivated'} successfully` })
+  } catch (error) {
+    console.error('Error updating user status:', error)
+    res.status(500).json({ error: 'Failed to update user status' })
+  }
+})
+
+// POST /api/users/stations - Create new station
+router.post('/stations', async (req, res) => {
+  try {
+    const { name, code, address, is_active = true } = req.body
+    
+    if (!name || !code) {
+      return res.status(400).json({ error: 'Station name and code are required' })
+    }
+
+    const station = await UserService.createStation({
+      name,
+      code,
+      address: address || null,
+      is_active
+    })
+    
+    res.status(201).json({ success: true, station })
+  } catch (error) {
+    console.error('Error creating station:', error)
+    
+    // Handle unique constraint violations
+    if (error instanceof Error && error.message.includes('unique constraint')) {
+      if (error.message.includes('name')) {
+        return res.status(409).json({ error: 'Station name already exists' })
+      }
+      if (error.message.includes('code')) {
+        return res.status(409).json({ error: 'Station code already exists' })
+      }
+    }
+    
+    res.status(500).json({ error: 'Failed to create station' })
+  }
+})
+
+// POST /api/users/roles - Create new role
+router.post('/roles', async (req, res) => {
+  try {
+    const { name, description, permissions = {} } = req.body
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Role name is required' })
+    }
+
+    const role = await UserService.createRole({
+      name,
+      description: description || null,
+      permissions
+    })
+    
+    res.status(201).json({ success: true, role })
+  } catch (error) {
+    console.error('Error creating role:', error)
+    
+    // Handle unique constraint violations
+    if (error instanceof Error && error.message.includes('unique constraint')) {
+      return res.status(409).json({ error: 'Role name already exists' })
+    }
+    
+    res.status(500).json({ error: 'Failed to create role' })
+  }
+})
+
 export default router
