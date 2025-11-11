@@ -114,9 +114,10 @@ const AdminDashboard: React.FC = () => {
 
   const loadRoles = async () => {
     try {
-      const response = await fetch('/api/users/roles/all')
+      const response = await fetch(`/api/users/roles/all?t=${Date.now()}`)
       if (!response.ok) throw new Error('Failed to fetch roles')
       const data = await response.json()
+      console.log('Loaded roles:', data)
       setRoles(data)
     } catch (err) {
       console.error('Failed to load roles:', err)
@@ -125,9 +126,10 @@ const AdminDashboard: React.FC = () => {
 
   const loadStations = async () => {
     try {
-      const response = await fetch('/api/users/stations/all')
+      const response = await fetch(`/api/users/stations/all?t=${Date.now()}`)
       if (!response.ok) throw new Error('Failed to fetch stations')
       const data = await response.json()
+      console.log('Loaded stations:', data)
       setStations(data)
     } catch (err) {
       console.error('Failed to load stations:', err)
@@ -137,15 +139,33 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const loadAllData = async () => {
       setLoading(true)
+      console.log('Loading all data...')
       await Promise.all([loadUsers(), loadRoles(), loadStations()])
+      console.log('Data loading complete')
       setLoading(false)
     }
     loadAllData()
   }, [])
 
+  // Debug when add user dialog opens and reload data
+  useEffect(() => {
+    if (isAddUserDialogOpen) {
+      console.log('Add User Dialog opened - Current state:')
+      console.log('Roles:', roles)
+      console.log('Stations:', stations)
+      console.log('New User:', newUser)
+      
+      // Force reload data when dialog opens to ensure fresh data
+      loadRoles()
+      loadStations()
+    }
+  }, [isAddUserDialogOpen])
+
   const handleAddUser = async () => {
     try {
       setError(null)
+      console.log('Creating user with data:', newUser)
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -155,6 +175,7 @@ const AdminDashboard: React.FC = () => {
       })
 
       const result = await response.json()
+      console.log('User creation response:', result)
 
       if (result.success) {
         setSuccess('User created successfully')
@@ -176,6 +197,7 @@ const AdminDashboard: React.FC = () => {
         setError(result.message || 'Failed to create user')
       }
     } catch (err) {
+      console.error('Error creating user:', err)
       setError(err instanceof Error ? err.message : 'Failed to create user')
     }
   }
@@ -522,52 +544,96 @@ const AdminDashboard: React.FC = () => {
                   />
                 </Field>
                 <Field label="Role" required>
-                  <Select
+                  <select
                     value={newUser.role_id.toString()}
-                    onChange={(_, data) => setNewUser({ ...newUser, role_id: parseInt(data.value || '0') })}
+                    onChange={(e) => {
+                      console.log('Role selected:', e.target.value, 'from options:', roles)
+                      setNewUser({ ...newUser, role_id: parseInt(e.target.value || '0') })
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      fontSize: '14px'
+                    }}
                   >
-                    <Option value="0">Please select a role...</Option>
+                    <option value="0">Please select a role...</option>
                     {roles.map((role) => (
-                      <Option key={role.id} value={role.id.toString()}>
+                      <option key={role.id} value={role.id.toString()}>
                         {role.name}
-                      </Option>
+                      </option>
                     ))}
-                  </Select>
+                  </select>
                 </Field>
                 <Field label="Station">
-                  <Select
+                  <select
                     value={newUser.station_id?.toString() || ''}
-                    onChange={(_, data) => setNewUser({ ...newUser, station_id: data.value ? parseInt(data.value) : null })}
+                    onChange={(e) => {
+                      console.log('Station selected:', e.target.value, 'from options:', stations)
+                      setNewUser({ ...newUser, station_id: e.target.value ? parseInt(e.target.value) : null })
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      fontSize: '14px'
+                    }}
                   >
-                    <Option value="">Select Station</Option>
-                    {stations.map((station) => (
-                      <Option key={station.id} value={station.id.toString()}>
-                        {station.name}
-                      </Option>
-                    ))}
-                  </Select>
+                    <option value="">Select Station</option>
+                    {stations.length > 0 ? (
+                      stations.map((station) => (
+                        <option key={station.id} value={station.id.toString()}>
+                          {station.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>Loading stations...</option>
+                    )}
+                  </select>
                 </Field>
                 <Field label="Platoon">
-                  <Select
+                  <select
                     value={newUser.platoon || ''}
-                    onChange={(_, data) => setNewUser({ ...newUser, platoon: data.value as any })}
+                    onChange={(e) => {
+                      console.log('Platoon selected:', e.target.value)
+                      setNewUser({ ...newUser, platoon: e.target.value as any })
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      fontSize: '14px'
+                    }}
                   >
-                    <Option value="">Select Platoon</Option>
-                    <Option value="A">A Platoon</Option>
-                    <Option value="B">B Platoon</Option>
-                    <Option value="C">C Platoon</Option>
-                    <Option value="Admin">Admin</Option>
-                  </Select>
+                    <option value="">Select Platoon</option>
+                    <option value="A">A Platoon</option>
+                    <option value="B">B Platoon</option>
+                    <option value="C">C Platoon</option>
+                    <option value="Admin">Admin</option>
+                  </select>
                 </Field>
                 <Field label="Shift Pattern">
-                  <Select
+                  <select
                     value={newUser.shift_pattern || ''}
-                    onChange={(_, data) => setNewUser({ ...newUser, shift_pattern: data.value as any })}
+                    onChange={(e) => {
+                      console.log('Shift pattern selected:', e.target.value)
+                      setNewUser({ ...newUser, shift_pattern: e.target.value as any })
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      fontSize: '14px'
+                    }}
                   >
-                    <Option value="">Select Shift Pattern</Option>
-                    <Option value="24_48">24/48</Option>
-                    <Option value="M_F">Monday-Friday</Option>
-                  </Select>
+                    <option value="">Select Shift Pattern</option>
+                    <option value="24_48">24/48</option>
+                    <option value="M_F">Monday-Friday</option>
+                  </select>
                 </Field>
               </div>
             </DialogContent>
@@ -578,7 +644,8 @@ const AdminDashboard: React.FC = () => {
               <Button
                 appearance="primary"
                 onClick={handleAddUser}
-                disabled={!newUser.employee_id || !newUser.first_name || !newUser.last_name || !newUser.email || !newUser.password || !newUser.role_id}
+                // Temporarily remove disabled for testing
+                // disabled={!newUser.employee_id || !newUser.first_name || !newUser.last_name || !newUser.email || !newUser.password || !newUser.role_id}
               >
                 Create User
               </Button>
