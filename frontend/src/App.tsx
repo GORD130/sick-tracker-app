@@ -3,9 +3,10 @@ import { FluentProvider, webLightTheme, Button } from '@fluentui/react-component
 import './App.css'
 import SickCallForm from './components/SickCallForm'
 import UserManagement from './components/UserManagement'
+import AdminDashboard from './components/AdminDashboard'
 
 function App() {
-  const [currentView, setCurrentView] = useState<'sick-call' | 'users'>('sick-call')
+  const [currentView, setCurrentView] = useState<'sick-call' | 'users' | 'admin'>('sick-call')
 
   return (
     <FluentProvider theme={webLightTheme}>
@@ -31,12 +32,19 @@ function App() {
               >
                 User Management
               </Button>
+              <Button
+                appearance={currentView === 'admin' ? 'primary' : 'secondary'}
+                onClick={() => setCurrentView('admin')}
+              >
+                Admin Dashboard
+              </Button>
             </div>
           </div>
         </header>
         <main>
           {currentView === 'sick-call' && <SickCallForm />}
           {currentView === 'users' && <UserManagement />}
+          {currentView === 'admin' && <AdminDashboard />}
         </main>
       </div>
     </FluentProvider>
