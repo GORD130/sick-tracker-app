@@ -5,6 +5,7 @@ export interface Database {
   users: UserTable
   roles: RoleTable
   stations: StationTable
+  platoons: PlatoonTable
   
   // Absence tracking
   absences: AbsenceTable
@@ -52,7 +53,7 @@ export interface UserTable {
   phone: string | null
   role_id: number
   station_id: number | null
-  platoon: 'A' | 'B' | 'C' | 'Admin' | null
+  platoon_id: number | null
   shift_pattern: '24_48' | 'M_F' | null
   password_hash: string | null
   is_active: boolean
@@ -73,6 +74,16 @@ export interface StationTable {
   name: string
   code: string
   address: string | null
+  is_active: boolean
+  created_at: Generated<Date>
+}
+
+export interface PlatoonTable {
+  id: Generated<number>
+  name: string
+  code: string
+  description: string | null
+  shift_pattern: string
   is_active: boolean
   created_at: Generated<Date>
 }

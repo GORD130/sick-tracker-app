@@ -130,7 +130,7 @@ export class UserService {
         'users.email',
         'users.phone',
         'users.station_id',
-        'users.platoon',
+        'users.platoon_id',
         'users.shift_pattern',
         'users.is_active',
         'users.created_at',
@@ -177,6 +177,7 @@ export class UserService {
       .orderBy('first_name', 'asc')
       .execute()
   }
+
   static async getAllRoles() {
     return await db
       .selectFrom('roles')
@@ -188,6 +189,14 @@ export class UserService {
   static async getAllStations() {
     return await db
       .selectFrom('stations')
+      .selectAll()
+      .orderBy('id', 'asc')
+      .execute()
+  }
+
+  static async getAllPlatoons() {
+    return await db
+      .selectFrom('platoons')
       .selectAll()
       .orderBy('id', 'asc')
       .execute()
@@ -230,5 +239,51 @@ export class UserService {
       .values(roleData)
       .returningAll()
       .executeTakeFirstOrThrow()
+  }
+
+  static async createPlatoon(platoonData: {
+    name: string
+    code: string
+    description: string | null
+    shift_pattern: string
+    is_active: boolean
+  }) {
+    return await db
+      .insertInto('platoons')
+      .values(platoonData)
+      .returningAll()
+      .executeTakeFirstOrThrow()
+  }
+
+  static async updatePlatoon(id: number, updates: {
+    name?: string
+    code?: string
+    description?: string | null
+    shift_pattern?: string
+    is_active?: boolean
+  }) {
+    const result = await db
+      .updateTable('platoons')
+      .set(updates)
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirst()
+
+    return result || null
+  }
+
+  static async updateRole(id: number, updates: {
+    name?: string
+    description?: string | null
+    permissions?: any
+  }) {
+    const result = await db
+      .updateTable('roles')
+      .set(updates)
+      .where('id', '=', id)
+      .returningAll()
+      .executeTakeFirst()
+
+    return result || null
   }
 }

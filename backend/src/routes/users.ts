@@ -314,4 +314,106 @@ router.post('/roles', async (req, res) => {
   }
 })
 
+// GET /api/users/platoons/all - Get all platoons
+router.get('/platoons/all', async (_req, res) => {
+  try {
+    const platoons = await UserService.getAllPlatoons()
+    res.json(platoons)
+  } catch (error) {
+    console.error('Error fetching platoons:', error)
+    res.status(500).json({ error: 'Failed to fetch platoons' })
+  }
+})
+
+// POST /api/users/platoons - Create new platoon
+router.post('/platoons', async (req, res) => {
+  try {
+    const { name, code, description, shift_pattern, is_active = true } = req.body
+    
+    if (!name || !code || !shift_pattern) {
+      return res.status(400).json({ error: 'Platoon name, code, and shift pattern are required' })
+    }
+
+    const platoon = await UserService.createPlatoon({
+      name,
+      code,
+      description: description || null,
+      shift_pattern,
+      is_active
+    })
+    
+    res.status(201).json({ success: true, platoon })
+  } catch (error) {
+    console.error('Error creating platoon:', error)
+    
+    // Handle unique constraint violations
+    if (error instanceof Error && error.message.includes('unique constraint')) {
+      if (error.message.includes('name')) {
+        return res.status(409).json({ error: 'Platoon name already exists' })
+      }
+      if (error.message.includes('code')) {
+        return res.status(409).json({ error: 'Platoon code already exists' })
+      }
+    }
+    
+    res.status(500).json({ error: 'Failed to create platoon' })
+  }
+})
+
+// PUT /api/users/platoons/:id - Update platoon
+router.put('/platoons/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id)
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid platoon ID' })
+    }
+
+    const { name, code, description, shift_pattern, is_active } = req.body
+    
+    const platoon = await UserService.updatePlatoon(id, {
+      name,
+      code,
+      description,
+      shift_pattern,
+      is_active
+    })
+    
+    if (!platoon) {
+      return res.status(404).json({ error: 'Platoon not found' })
+    }
+    
+    res.json({ success: true, platoon })
+  } catch (error) {
+    console.error('Error updating platoon:', error)
+    res.status(500).json({ error: 'Failed to update platoon' })
+  }
+})
+
+// PUT /api/users/roles/:id - Update role
+router.put('/roles/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id)
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid role ID' })
+    }
+
+    const { name, description, permissions } = req.body
+    
+    const role = await UserService.updateRole(id, {
+      name,
+      description,
+      permissions
+    })
+    
+    if (!role) {
+      return res.status(404).json({ error: 'Role not found' })
+    }
+    
+    res.json({ success: true, role })
+  } catch (error) {
+    console.error('Error updating role:', error)
+    res.status(500).json({ error: 'Failed to update role' })
+  }
+})
+
 export default router

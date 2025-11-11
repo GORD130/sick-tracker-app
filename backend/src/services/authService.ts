@@ -19,7 +19,7 @@ export interface RegisterData {
   phone: string | null
   role_id: number
   station_id: number | null
-  platoon: 'A' | 'B' | 'C' | 'Admin' | null
+  platoon_id: number | null
   shift_pattern: '24_48' | 'M_F' | null
   password: string
 }
@@ -36,7 +36,7 @@ export interface AuthResponse {
     email: string
     role_id: number
     station_id: number | null
-    platoon: 'A' | 'B' | 'C' | 'Admin' | null
+    platoon_id: number | null
     shift_pattern: '24_48' | 'M_F' | null
   }
 }
@@ -65,7 +65,7 @@ export class AuthService {
           'users.email',
           'users.role_id',
           'users.station_id',
-          'users.platoon',
+          'users.platoon_id',
           'users.shift_pattern',
           'users.password_hash',
           'users.is_active',
@@ -125,7 +125,7 @@ export class AuthService {
           email: user.email,
           role_id: user.role_id,
           station_id: user.station_id,
-          platoon: user.platoon,
+          platoon_id: user.platoon_id,
           shift_pattern: user.shift_pattern
         }
       }
@@ -185,7 +185,7 @@ export class AuthService {
           phone: userData.phone,
           role_id: userData.role_id,
           station_id: userData.station_id,
-          platoon: userData.platoon,
+          platoon_id: userData.platoon_id,
           shift_pattern: userData.shift_pattern,
           password_hash: passwordHash,
           is_active: true
@@ -198,7 +198,7 @@ export class AuthService {
           'email',
           'role_id',
           'station_id',
-          'platoon',
+          'platoon_id',
           'shift_pattern'
         ])
         .executeTakeFirst()
@@ -234,7 +234,7 @@ export class AuthService {
           email: user.email,
           role_id: user.role_id,
           station_id: user.station_id,
-          platoon: user.platoon,
+          platoon_id: user.platoon_id,
           shift_pattern: user.shift_pattern
         }
       }
@@ -266,7 +266,7 @@ export class AuthService {
           'users.email',
           'users.role_id',
           'users.station_id',
-          'users.platoon',
+          'users.platoon_id',
           'users.shift_pattern',
           'users.is_active',
           'roles.name as role_name',
@@ -295,7 +295,7 @@ export class AuthService {
             email: user.email,
             role_id: user.role_id,
             station_id: user.station_id,
-            platoon: user.platoon,
+            platoon_id: user.platoon_id,
             shift_pattern: user.shift_pattern,
             role_name: user.role_name,
             permissions: user.permissions

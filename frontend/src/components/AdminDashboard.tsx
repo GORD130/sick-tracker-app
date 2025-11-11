@@ -60,11 +60,22 @@ interface Station {
   is_active: boolean
 }
 
+interface Platoon {
+  id: number
+  name: string
+  code: string
+  description: string | null
+  shift_pattern: string
+  is_active: boolean
+  created_at: Date
+}
+
 const AdminDashboard: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<TabValue>('users')
   const [users, setUsers] = useState<User[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [stations, setStations] = useState<Station[]>([])
+  const [platoons, setPlatoons] = useState<Platoon[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -99,6 +110,16 @@ const AdminDashboard: React.FC = () => {
     name: '',
     description: '',
     permissions: {}
+  })
+
+  // Platoon management states
+  const [isAddPlatoonDialogOpen, setIsAddPlatoonDialogOpen] = useState(false)
+  const [newPlatoon, setNewPlatoon] = useState({
+    name: '',
+    code: '',
+    description: '',
+    shift_pattern: '4 on 4 off',
+    is_active: true
   })
 
   const loadUsers = async () => {
@@ -136,11 +157,23 @@ const AdminDashboard: React.FC = () => {
     }
   }
 
+  const loadPlatoons = async () => {
+    try {
+      const response = await fetch(`/api/users/platoons/all?t=${Date.now()}`)
+      if (!response.ok) throw new Error('Failed to fetch platoons')
+      const data = await response.json()
+      console.log('Loaded platoons:', data)
+      setPlatoons(data)
+    } catch (err) {
+      console.error('Failed to load platoons:', err)
+    }
+  }
+
   useEffect(() => {
     const loadAllData = async () => {
       setLoading(true)
       console.log('Loading all data...')
-      await Promise.all([loadUsers(), loadRoles(), loadStations()])
+      await Promise.all([loadUsers(), loadRoles(), loadStations(), loadPlatoons()])
       console.log('Data loading complete')
       setLoading(false)
     }
@@ -158,6 +191,7 @@ const AdminDashboard: React.FC = () => {
       // Force reload data when dialog opens to ensure fresh data
       loadRoles()
       loadStations()
+      loadPlatoons()
     }
   }, [isAddUserDialogOpen])
 
@@ -260,6 +294,38 @@ const AdminDashboard: React.FC = () => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create role')
+    }
+  }
+
+  const handleAddPlatoon = async () => {
+    try {
+      setError(null)
+      const response = await fetch('/api/users/platoons', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPlatoon),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setSuccess('Platoon created successfully')
+        setIsAddPlatoonDialogOpen(false)
+        setNewPlatoon({
+          name: '',
+          code: '',
+          description: '',
+          shift_pattern: '4 on 4 off',
+          is_active: true
+        })
+        loadPlatoons()
+      } else {
+        setError(result.message || 'Failed to create platoon')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create platoon')
     }
   }
 
@@ -419,6 +485,45 @@ const AdminDashboard: React.FC = () => {
     </div>
   )
 
+  const renderPlatoonsTab = () => (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h3>Platoon Management</h3>
+        <Button appearance="primary" onClick={() => setIsAddPlatoonDialogOpen(true)}>
+          Add New Platoon
+        </Button>
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHeaderCell>Name</TableHeaderCell>
+            <TableHeaderCell>Code</TableHeaderCell>
+            <TableHeaderCell>Description</TableHeaderCell>
+            <TableHeaderCell>Shift Pattern</TableHeaderCell>
+            <TableHeaderCell>Status</TableHeaderCell>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {platoons.map((platoon) => (
+            <TableRow key={platoon.id}>
+              <TableCell>{platoon.name}</TableCell>
+              <TableCell>{platoon.code}</TableCell>
+              <TableCell>{platoon.description || 'N/A'}</TableCell>
+              <TableCell>{platoon.shift_pattern}</TableCell>
+              <TableCell>
+                <Switch checked={platoon.is_active} />
+                <span style={{ marginLeft: '0.5rem' }}>
+                  {platoon.is_active ? 'Active' : 'Inactive'}
+                </span>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+
   const renderRolesTab = () => (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -442,7 +547,7 @@ const AdminDashboard: React.FC = () => {
               <TableCell>{role.name}</TableCell>
               <TableCell>{role.description || 'N/A'}</TableCell>
               <TableCell>
-                {Object.keys(role.permissions || {}).length > 0 ? 
+                {Object.keys(role.permissions || {}).length > 0 ?
                   Object.keys(role.permissions).join(', ') : 'No permissions'}
               </TableCell>
             </TableRow>
@@ -476,14 +581,16 @@ const AdminDashboard: React.FC = () => {
 
       <TabList selectedValue={selectedTab} onTabSelect={(_, data) => setSelectedTab(data.value)}>
         <Tab value="users">Users</Tab>
-        <Tab value="stations">Stations</Tab>
-        <Tab value="roles">Roles</Tab>
-        <Tab value="import">Data Import</Tab>
+         <Tab value="stations">Stations</Tab>
+         <Tab value="platoons">Platoons</Tab>
+         <Tab value="roles">Roles</Tab>
+         <Tab value="import">Data Import</Tab>
       </TabList>
 
       <div style={{ marginTop: '1rem' }}>
         {selectedTab === 'users' && renderUsersTab()}
         {selectedTab === 'stations' && renderStationsTab()}
+        {selectedTab === 'platoons' && renderPlatoonsTab()}
         {selectedTab === 'roles' && renderRolesTab()}
         {selectedTab === 'import' && (
           <Card>
@@ -748,6 +855,79 @@ const AdminDashboard: React.FC = () => {
                 disabled={!newRole.name}
               >
                 Create Role
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
+
+      {/* Add Platoon Dialog */}
+      <Dialog open={isAddPlatoonDialogOpen} onOpenChange={(_, data) => {
+        setIsAddPlatoonDialogOpen(data.open)
+        clearMessages()
+      }}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>Add New Platoon</DialogTitle>
+            <DialogContent>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                <Field label="Platoon Name" required>
+                  <Input
+                    value={newPlatoon.name}
+                    onChange={(_, data) => setNewPlatoon({ ...newPlatoon, name: data.value })}
+                  />
+                </Field>
+                <Field label="Platoon Code" required>
+                  <Input
+                    value={newPlatoon.code}
+                    onChange={(_, data) => setNewPlatoon({ ...newPlatoon, code: data.value })}
+                  />
+                </Field>
+                <Field label="Description">
+                  <Input
+                    value={newPlatoon.description}
+                    onChange={(_, data) => setNewPlatoon({ ...newPlatoon, description: data.value })}
+                  />
+                </Field>
+                <Field label="Shift Pattern" required>
+                  <select
+                    value={newPlatoon.shift_pattern}
+                    onChange={(e) => setNewPlatoon({ ...newPlatoon, shift_pattern: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="4 on 4 off">4 on 4 off</option>
+                    <option value="24/48">24/48</option>
+                    <option value="Monday-Friday">Monday-Friday</option>
+                    <option value="Custom">Custom</option>
+                  </select>
+                </Field>
+                <Field label="Status">
+                  <Switch
+                    checked={newPlatoon.is_active}
+                    onChange={(_, data) => setNewPlatoon({ ...newPlatoon, is_active: data.checked })}
+                  />
+                  <span style={{ marginLeft: '0.5rem' }}>
+                    {newPlatoon.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </Field>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <DialogTrigger disableButtonEnhancement>
+                <Button appearance="secondary">Cancel</Button>
+              </DialogTrigger>
+              <Button
+                appearance="primary"
+                onClick={handleAddPlatoon}
+                disabled={!newPlatoon.name || !newPlatoon.code}
+              >
+                Create Platoon
               </Button>
             </DialogActions>
           </DialogBody>
