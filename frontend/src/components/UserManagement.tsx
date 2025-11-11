@@ -63,7 +63,7 @@ const UserManagement: React.FC = () => {
     last_name: '',
     email: '',
     phone: '',
-    role_id: 1,
+    role_id: 0,
     station_id: null as number | null,
     platoon: null as 'A' | 'B' | 'C' | 'Admin' | null,
     shift_pattern: null as '24_48' | 'M_F' | null,
@@ -134,7 +134,7 @@ const UserManagement: React.FC = () => {
           last_name: '',
           email: '',
           phone: '',
-          role_id: 1,
+          role_id: 0,
           station_id: null,
           platoon: null,
           shift_pattern: null,
@@ -300,8 +300,9 @@ const UserManagement: React.FC = () => {
                 <Field label="Role" required>
                   <Select
                     value={newUser.role_id.toString()}
-                    onChange={(_, data) => setNewUser({ ...newUser, role_id: parseInt(data.value || '1') })}
+                    onChange={(_, data) => setNewUser({ ...newUser, role_id: parseInt(data.value || '0') })}
                   >
+                    <Option value="0">Please select a role...</Option>
                     {roles.map((role) => (
                       <Option key={role.id} value={role.id.toString()}>
                         {role.name}
@@ -350,7 +351,11 @@ const UserManagement: React.FC = () => {
               <DialogTrigger disableButtonEnhancement>
                 <Button appearance="secondary">Cancel</Button>
               </DialogTrigger>
-              <Button appearance="primary" onClick={handleAddUser}>
+              <Button
+                appearance="primary"
+                onClick={handleAddUser}
+                disabled={!newUser.employee_id || !newUser.first_name || !newUser.last_name || !newUser.email || !newUser.password || !newUser.role_id}
+              >
                 Create User
               </Button>
             </DialogActions>

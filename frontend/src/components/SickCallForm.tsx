@@ -54,7 +54,7 @@ const SickCallForm: React.FC = () => {
     absence_type_id: 0,
     start_date: new Date().toISOString().split('T')[0],
     expected_end_date: '',
-    reason_category: 'Illness',
+    reason_category: '' as any,
     severity_level: 'Minor',
     reporting_officer_id: 0,
     management_level: 'Active Management',
@@ -239,6 +239,7 @@ const SickCallForm: React.FC = () => {
             value={formData.reason_category}
             onChange={(_, data) => handleInputChange('reason_category', data.value)}
           >
+            <option value="">Please select the type of absence...</option>
             <option value="Illness">Illness</option>
             <option value="Injury">Injury</option>
             <option value="Family">Family Emergency</option>
@@ -289,7 +290,7 @@ const SickCallForm: React.FC = () => {
           <Button
             appearance="primary"
             type="submit"
-            disabled={loading || !formData.reporting_officer_id || !formData.employee_id || !formData.absence_type_id}
+            disabled={loading || !formData.reporting_officer_id || !formData.employee_id || !formData.absence_type_id || !formData.reason_category}
           >
             {loading ? <Spinner size="tiny" /> : 'Submit Sick Call'}
           </Button>
