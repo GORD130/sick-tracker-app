@@ -394,6 +394,9 @@ async function seedQuestionTemplates() {
 async function seedUsers(roles: any[], stations: any[]) {
   console.log('Seeding users...')
   
+  // Import bcrypt for password hashing
+  const bcrypt = await import('bcryptjs')
+  
   const users: Array<{
     employee_id: string
     first_name: string
@@ -460,16 +463,16 @@ async function seedUsers(roles: any[], stations: any[]) {
       is_active: true
     },
     {
-      employee_id: 'ADMIN001',
-      first_name: 'Admin',
-      last_name: 'User',
+      employee_id: 'ADMIN',
+      first_name: 'System',
+      last_name: 'Administrator',
       email: 'admin@firedept.ca',
       phone: '555-0000',
       role_id: roles[3].id, // Admin
       station_id: null,
       platoon: 'Admin',
       shift_pattern: 'M_F',
-      password_hash: '$2a$10$demoHashForTesting1234567890',
+      password_hash: bcrypt.hashSync('admin', 10), // Hash the password 'admin'
       is_active: true
     }
   ]
