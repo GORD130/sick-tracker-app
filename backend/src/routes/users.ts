@@ -416,4 +416,24 @@ router.put('/roles/:id', async (req, res) => {
   }
 })
 
+// DELETE /api/users/roles/:id - Delete role
+router.delete('/roles/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id)
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid role ID' })
+    }
+
+    const success = await UserService.deleteRole(id)
+    if (!success) {
+      return res.status(404).json({ error: 'Role not found' })
+    }
+    
+    res.json({ success: true, message: 'Role deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting role:', error)
+    res.status(500).json({ error: 'Failed to delete role' })
+  }
+})
+
 export default router

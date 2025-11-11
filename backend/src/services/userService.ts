@@ -286,4 +286,13 @@ export class UserService {
 
     return result || null
   }
+
+  static async deleteRole(id: number): Promise<boolean> {
+    const result = await db
+      .deleteFrom('roles')
+      .where('id', '=', id)
+      .executeTakeFirst()
+
+    return result.numDeletedRows > 0
+  }
 }

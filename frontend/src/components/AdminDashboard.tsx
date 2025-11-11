@@ -122,6 +122,9 @@ const AdminDashboard: React.FC = () => {
     is_active: true
   })
 
+  // Role editing state
+  const [editingRole, setEditingRole] = useState<Role | null>(null)
+
   const loadUsers = async () => {
     try {
       const response = await fetch('/api/users')
@@ -270,30 +273,45 @@ const AdminDashboard: React.FC = () => {
   const handleAddRole = async () => {
     try {
       setError(null)
-      const response = await fetch('/api/users/roles', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newRole),
-      })
+      
+      let response
+      if (editingRole) {
+        // Update existing role
+        response = await fetch(`/api/users/roles/${editingRole.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newRole),
+        })
+      } else {
+        // Create new role
+        response = await fetch('/api/users/roles', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newRole),
+        })
+      }
 
       const result = await response.json()
 
       if (result.success) {
-        setSuccess('Role created successfully')
+        setSuccess(editingRole ? 'Role updated successfully' : 'Role created successfully')
         setIsAddRoleDialogOpen(false)
         setNewRole({
           name: '',
           description: '',
           permissions: {}
         })
+        setEditingRole(null)
         loadRoles()
       } else {
-        setError(result.message || 'Failed to create role')
+        setError(result.message || (editingRole ? 'Failed to update role' : 'Failed to create role'))
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create role')
+      setError(err instanceof Error ? err.message : (editingRole ? 'Failed to update role' : 'Failed to create role'))
     }
   }
 
@@ -326,6 +344,40 @@ const AdminDashboard: React.FC = () => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create platoon')
+    }
+  }
+
+  const handleEditRole = (role: Role) => {
+    setEditingRole(role)
+    setNewRole({
+      name: role.name,
+      description: role.description || '',
+      permissions: role.permissions || {}
+    })
+    setIsAddRoleDialogOpen(true)
+  }
+
+  const handleDeleteRole = async (roleId: number) => {
+    if (!confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setError(null)
+      const response = await fetch(`/api/users/roles/${roleId}`, {
+        method: 'DELETE',
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setSuccess('Role deleted successfully')
+        loadRoles()
+      } else {
+        setError(result.message || 'Failed to delete role')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete role')
     }
   }
 
@@ -539,6 +591,7 @@ const AdminDashboard: React.FC = () => {
             <TableHeaderCell>Name</TableHeaderCell>
             <TableHeaderCell>Description</TableHeaderCell>
             <TableHeaderCell>Permissions</TableHeaderCell>
+            <TableHeaderCell>Actions</TableHeaderCell>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -549,6 +602,24 @@ const AdminDashboard: React.FC = () => {
               <TableCell>
                 {Object.keys(role.permissions || {}).length > 0 ?
                   Object.keys(role.permissions).join(', ') : 'No permissions'}
+              </TableCell>
+              <TableCell>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Button
+                    size="small"
+                    appearance="secondary"
+                    onClick={() => handleEditRole(role)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="small"
+                    appearance="subtle"
+                    onClick={() => handleDeleteRole(role.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -810,11 +881,20 @@ const AdminDashboard: React.FC = () => {
       {/* Add Role Dialog */}
       <Dialog open={isAddRoleDialogOpen} onOpenChange={(_, data) => {
         setIsAddRoleDialogOpen(data.open)
+        if (!data.open) {
+          // Reset form when dialog closes
+          setNewRole({
+            name: '',
+            description: '',
+            permissions: {}
+          })
+          setEditingRole(null)
+        }
         clearMessages()
       }}>
         <DialogSurface>
           <DialogBody>
-            <DialogTitle>Add New Role</DialogTitle>
+            <DialogTitle>{editingRole ? 'Edit Role' : 'Add New Role'}</DialogTitle>
             <DialogContent>
               <div style={{ display: 'grid', gap: '1rem' }}>
                 <Field label="Role Name" required>
@@ -854,7 +934,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={handleAddRole}
                 disabled={!newRole.name}
               >
-                Create Role
+                {editingRole ? 'Update Role' : 'Create Role'}
               </Button>
             </DialogActions>
           </DialogBody>
