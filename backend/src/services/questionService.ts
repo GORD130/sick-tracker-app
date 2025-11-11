@@ -41,6 +41,9 @@ export class QuestionService {
         return question.category === 'Initial' || question.category === 'Mental Health'
       } else if (reasonCategory === 'Injury') {
         return question.category === 'Initial' || question.category === 'Medical'
+      } else if (absenceType === 'Extended' && reasonCategory === 'Medical') {
+        // Extended medical absences get additional medical questions
+        return question.category === 'Initial' || question.category === 'Medical'
       } else {
         return question.category === 'Initial'
       }
