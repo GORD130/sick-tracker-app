@@ -1,5 +1,4 @@
 import { db } from '../database/db.js'
-import type { Database } from '../database/schema.js'
 
 export class QuestionService {
   /**

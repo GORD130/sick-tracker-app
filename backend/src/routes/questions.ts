@@ -162,7 +162,7 @@ router.get('/:absenceId/risk-assessment', async (req, res) => {
 /**
  * Get return-to-work questions
  */
-router.get('/return-to-work', async (req, res) => {
+router.get('/return-to-work', async (_req, res) => {
   try {
     const questions = await questionService.getReturnToWorkQuestions()
     

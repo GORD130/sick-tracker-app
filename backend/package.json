@@ -10,7 +10,8 @@
     "migrate": "kysely-ctl migrate",
     "migrate:latest": "kysely-ctl migrate:latest",
     "migrate:down": "kysely-ctl migrate:down",
-    "migrate:create": "kysely-ctl migrate:create"
+    "migrate:create": "kysely-ctl migrate:create",
+    "seed": "tsx src/database/seed.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

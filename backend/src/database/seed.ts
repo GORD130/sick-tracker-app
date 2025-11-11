@@ -1,28 +1,34 @@
 import { db } from './db.js'
-import type { Database } from './schema.js'
 
 export async function seedDatabase() {
   console.log('Seeding database with initial data...')
 
-  // Clear existing data (optional - be careful in production)
-  // await clearExistingData()
-
-  // Seed roles
-  const roles = await seedRoles()
-  
-  // Seed stations
-  const stations = await seedStations()
-  
-  // Seed absence types
-  const absenceTypes = await seedAbsenceTypes()
-  
-  // Seed question templates
-  const questionTemplates = await seedQuestionTemplates()
-  
-  // Seed users
-  const users = await seedUsers(roles, stations)
-  
-  console.log('Database seeding completed successfully!')
+  try {
+    // Seed roles
+    const roles = await seedRoles()
+    console.log('Roles seeded successfully')
+    
+    // Seed stations
+    const stations = await seedStations()
+    console.log('Stations seeded successfully')
+    
+    // Seed absence types
+    await seedAbsenceTypes()
+    console.log('Absence types seeded successfully')
+    
+    // Seed question templates
+    await seedQuestionTemplates()
+    console.log('Question templates seeded successfully')
+    
+    // Seed users
+    await seedUsers(roles, stations)
+    console.log('Users seeded successfully')
+    
+    console.log('Database seeding completed successfully!')
+  } catch (error) {
+    console.error('Seeding failed:', error)
+    throw error
+  }
 }
 
 async function seedRoles() {
@@ -95,42 +101,42 @@ async function seedAbsenceTypes() {
       name: 'Sick Leave',
       requires_note: true,
       note_requirement_days: 3,
-      specific_forms: ['Medical Certificate'],
+      specific_forms: JSON.stringify(['Medical Certificate']),
       is_active: true
     },
     {
       name: 'Injury - On Duty',
       requires_note: true,
       note_requirement_days: 1,
-      specific_forms: ['Incident Report', 'WorkSafe Form'],
+      specific_forms: JSON.stringify(['Incident Report', 'WorkSafe Form']),
       is_active: true
     },
     {
       name: 'Injury - Off Duty',
       requires_note: true,
       note_requirement_days: 3,
-      specific_forms: ['Medical Certificate'],
+      specific_forms: JSON.stringify(['Medical Certificate']),
       is_active: true
     },
     {
       name: 'Family Emergency',
       requires_note: false,
       note_requirement_days: null,
-      specific_forms: [],
+      specific_forms: JSON.stringify([]),
       is_active: true
     },
     {
       name: 'Mental Health',
       requires_note: false,
       note_requirement_days: null,
-      specific_forms: ['EAP Referral'],
+      specific_forms: JSON.stringify(['EAP Referral']),
       is_active: true
     },
     {
       name: 'Preventive Care',
       requires_note: false,
       note_requirement_days: null,
-      specific_forms: [],
+      specific_forms: JSON.stringify([]),
       is_active: true
     }
   ]
@@ -164,7 +170,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'What is the primary reason for your absence?',
       question_type: 'select',
-      options: ['Illness', 'Injury', 'Family Emergency', 'Mental Health', 'Preventive Care', 'Other'],
+      options: JSON.stringify(['Illness', 'Injury', 'Family Emergency', 'Mental Health', 'Preventive Care', 'Other']),
       depends_on_question_id: null,
       depends_on_answer: null,
       is_required: true,
@@ -200,7 +206,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'What type of family emergency are you experiencing?',
       question_type: 'select',
-      options: ['Childcare', 'Elder Care', 'Medical Emergency', 'Bereavement', 'Other'],
+      options: JSON.stringify(['Childcare', 'Elder Care', 'Medical Emergency', 'Bereavement', 'Other']),
       depends_on_question_id: 1,
       depends_on_answer: 'Family Emergency',
       is_required: true,
@@ -247,7 +253,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'Are you experiencing any respiratory symptoms?',
       question_type: 'multi-select',
-      options: ['Cough', 'Shortness of breath', 'Sore throat', 'Runny nose', 'None'],
+      options: JSON.stringify(['Cough', 'Shortness of breath', 'Sore throat', 'Runny nose', 'None']),
       depends_on_question_id: 1,
       depends_on_answer: 'Illness',
       is_required: false,
@@ -256,7 +262,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'What body part is injured?',
       question_type: 'select',
-      options: ['Head/Neck', 'Upper Body', 'Lower Body', 'Back', 'Multiple Areas'],
+      options: JSON.stringify(['Head/Neck', 'Upper Body', 'Lower Body', 'Back', 'Multiple Areas']),
       depends_on_question_id: 1,
       depends_on_answer: 'Injury',
       is_required: true,
@@ -276,7 +282,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'How are you feeling today compared to yesterday?',
       question_type: 'select',
-      options: ['Much Better', 'Slightly Better', 'About the Same', 'Slightly Worse', 'Much Worse'],
+      options: JSON.stringify(['Much Better', 'Slightly Better', 'About the Same', 'Slightly Worse', 'Much Worse']),
       depends_on_question_id: null,
       depends_on_answer: null,
       is_required: true,
@@ -303,7 +309,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'What type of light duties could you perform?',
       question_type: 'multi-select',
-      options: ['Administrative tasks', 'Training', 'Equipment maintenance', 'Station duties', 'None'],
+      options: JSON.stringify(['Administrative tasks', 'Training', 'Equipment maintenance', 'Station duties', 'None']),
       depends_on_question_id: 15,
       depends_on_answer: 'true',
       is_required: true,
@@ -314,7 +320,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'How would you rate your current stress level?',
       question_type: 'select',
-      options: ['Low', 'Moderate', 'High', 'Very High'],
+      options: JSON.stringify(['Low', 'Moderate', 'High', 'Very High']),
       depends_on_question_id: 1,
       depends_on_answer: 'Mental Health',
       is_required: true,
@@ -323,7 +329,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'Are you currently using any support services?',
       question_type: 'multi-select',
-      options: ['EAP', 'Therapist', 'Peer Support', 'Family Support', 'None'],
+      options: JSON.stringify(['EAP', 'Therapist', 'Peer Support', 'Family Support', 'None']),
       depends_on_question_id: 17,
       depends_on_answer: null,
       is_required: false,
@@ -332,7 +338,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'What coping strategies are you using?',
       question_type: 'multi-select',
-      options: ['Exercise', 'Meditation', 'Social Support', 'Professional Help', 'Other'],
+      options: JSON.stringify(['Exercise', 'Meditation', 'Social Support', 'Professional Help', 'Other']),
       depends_on_question_id: 17,
       depends_on_answer: null,
       is_required: false,
@@ -361,7 +367,7 @@ async function seedQuestionTemplates() {
     {
       question_text: 'Are there any accommodations you need?',
       question_type: 'multi-select',
-      options: ['Reduced hours', 'Light duty', 'Modified equipment', 'Temporary assignment', 'None'],
+      options: JSON.stringify(['Reduced hours', 'Light duty', 'Modified equipment', 'Temporary assignment', 'None']),
       depends_on_question_id: 20,
       depends_on_answer: 'false',
       is_required: false,
@@ -490,42 +496,9 @@ async function seedUsers(roles: any[], stations: any[]) {
   return insertedUsers
 }
 
-async function clearExistingData() {
-  console.log('Clearing existing data...')
-  
-  // Clear tables in reverse order of dependencies
-  const tables = [
-    'employee_feedback',
-    'resource_impact',
-    'cost_calculations',
-    'rtw_phase_progress',
-    'return_to_work_plans',
-    'preventive_interventions',
-    'wellness_indicators',
-    'self_reporting_logs',
-    'self_reporting_eligibility',
-    'communication_log',
-    'required_documents',
-    'contact_attempts',
-    'duty_assignments',
-    'workflow_steps',
-    'absence_questions',
-    'question_templates',
-    'mental_health_absences',
-    'absences',
-    'absence_types',
-    'users',
-    'stations',
-    'roles'
-  ] as const
-
-  for (const table of tables) {
-    await db.deleteFrom(table).execute()
-  }
-}
 
 // Run seeding if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === `file://${process.argv[1]}` || (process.argv[1] && process.argv[1].includes('seed'))) {
   seedDatabase()
     .then(() => {
       console.log('Seeding completed!')

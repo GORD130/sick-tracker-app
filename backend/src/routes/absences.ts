@@ -8,8 +8,15 @@ const router = Router()
 const createAbsenceSchema = z.object({
   employee_id: z.number(),
   absence_type_id: z.number(),
-  start_date: z.string().transform(str => new Date(str)),
-  expected_end_date: z.string().transform(str => new Date(str)).optional(),
+  start_date: z.string().transform(str => {
+    const date = new Date(str)
+    return isNaN(date.getTime()) ? new Date() : date
+  }),
+  expected_end_date: z.string().optional().transform(str => {
+    if (!str) return undefined
+    const date = new Date(str)
+    return isNaN(date.getTime()) ? undefined : date
+  }),
   reason_category: z.enum(['Illness', 'Injury', 'Family', 'Mental Health', 'Other']),
   severity_level: z.enum(['Minor', 'Moderate', 'Severe', 'Critical']),
   status: z.enum(['Reported', 'Under Review', 'Active', 'Follow-up Required', 'Resolved', 'Closed']).default('Reported'),
@@ -20,8 +27,16 @@ const createAbsenceSchema = z.object({
 })
 
 const updateAbsenceSchema = z.object({
-  expected_end_date: z.string().transform(str => new Date(str)).optional(),
-  actual_end_date: z.string().transform(str => new Date(str)).optional(),
+  expected_end_date: z.string().optional().transform(str => {
+    if (!str) return undefined
+    const date = new Date(str)
+    return isNaN(date.getTime()) ? undefined : date
+  }),
+  actual_end_date: z.string().optional().transform(str => {
+    if (!str) return undefined
+    const date = new Date(str)
+    return isNaN(date.getTime()) ? undefined : date
+  }),
   status: z.enum(['Reported', 'Under Review', 'Active', 'Follow-up Required', 'Resolved', 'Closed']).optional(),
   assigned_manager_id: z.number().optional(),
   management_level: z.enum(['Monitor Only', 'Light Management', 'Active Management', 'Intensive Management']).optional()
