@@ -7,6 +7,7 @@ import { connectRedis } from './cache/redis.js'
 import absenceRoutes from './routes/absences.js'
 import userRoutes from './routes/users.js'
 import authRoutes from './routes/auth.js'
+import questionRoutes from './routes/questions.js'
 
 // Load environment variables
 dotenv.config()
@@ -37,6 +38,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/absences', absenceRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/questions', questionRoutes)
 
 // 404 handler
 app.use('*', (_req, res) => {
