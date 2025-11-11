@@ -14,6 +14,8 @@ import {
   Radio,
   Divider,
 } from '@fluentui/react-components'
+import QuestionFlow from './QuestionFlow'
+import ConversationCapture from './ConversationCapture'
 
 interface User {
   id: number
@@ -41,6 +43,20 @@ interface SickCallFormData {
   notes?: string
 }
 
+interface QuestionAnswer {
+  question_template_id: number
+  answer: string
+  question_text: string
+  question_type: string
+}
+
+interface ConversationEntry {
+  id: string
+  question: string
+  answer: string
+  timestamp: Date
+}
+
 const SickCallForm: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,6 +64,8 @@ const SickCallForm: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])
   const [absenceTypes, setAbsenceTypes] = useState<AbsenceType[]>([])
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [questionAnswers, setQuestionAnswers] = useState<QuestionAnswer[]>([])
+  const [conversation, setConversation] = useState<ConversationEntry[]>([])
 
   const [formData, setFormData] = useState<SickCallFormData>({
     employee_id: 0,
@@ -79,15 +97,22 @@ const SickCallForm: React.FC = () => {
           }
         }
 
-        // Fetch absence types (mock data for now)
-        const mockAbsenceTypes: AbsenceType[] = [
-          { id: 1, name: 'Sick Leave', requires_note: false },
-          { id: 2, name: 'Workplace Injury', requires_note: true },
-          { id: 3, name: 'Medical Appointment', requires_note: false },
-          { id: 4, name: 'Family Emergency', requires_note: false },
-          { id: 5, name: 'Mental Health', requires_note: true },
-        ]
-        setAbsenceTypes(mockAbsenceTypes)
+        // Fetch absence types from backend
+        const absenceTypesResponse = await fetch('/api/absences/types')
+        if (absenceTypesResponse.ok) {
+          const absenceTypesData = await absenceTypesResponse.json()
+          setAbsenceTypes(absenceTypesData)
+        } else {
+          // Fallback to mock data if backend fails
+          const mockAbsenceTypes: AbsenceType[] = [
+            { id: 1, name: 'Sick Leave', requires_note: false },
+            { id: 2, name: 'Workplace Injury', requires_note: true },
+            { id: 3, name: 'Medical Appointment', requires_note: false },
+            { id: 4, name: 'Family Emergency', requires_note: false },
+            { id: 5, name: 'Mental Health', requires_note: true },
+          ]
+          setAbsenceTypes(mockAbsenceTypes)
+        }
 
       } catch (err) {
         console.error('Error fetching initial data:', err)
@@ -109,7 +134,8 @@ const SickCallForm: React.FC = () => {
     setSuccess(false)
 
     try {
-      const response = await fetch('/api/absences', {
+      // First create the absence
+      const absenceResponse = await fetch('/api/absences', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -120,9 +146,47 @@ const SickCallForm: React.FC = () => {
         }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
+      if (!absenceResponse.ok) {
+        const errorData = await absenceResponse.json()
         throw new Error(errorData.error || 'Failed to submit sick call')
+      }
+
+      const absenceData = await absenceResponse.json()
+      
+      // Then save question answers if there are any
+      if (questionAnswers.length > 0 && currentUser) {
+        const answersResponse = await fetch(`/api/questions/${absenceData.id}/answers`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            answers: questionAnswers,
+            answered_by_id: currentUser.id
+          }),
+        })
+
+        if (!answersResponse.ok) {
+          console.error('Failed to save question answers, but absence was created')
+        }
+      }
+
+      // Save conversation details if there are any
+      if (conversation.length > 0 && currentUser) {
+        const conversationResponse = await fetch(`/api/absences/${absenceData.id}/conversation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            conversation,
+            recorded_by_id: currentUser.id
+          }),
+        })
+
+        if (!conversationResponse.ok) {
+          console.error('Failed to save conversation details, but absence was created')
+        }
       }
 
       setSuccess(true)
@@ -138,6 +202,8 @@ const SickCallForm: React.FC = () => {
         management_level: 'Active Management',
         notes: ''
       })
+      setQuestionAnswers([])
+      setConversation([])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -280,6 +346,19 @@ const SickCallForm: React.FC = () => {
             rows={3}
           />
         </Field>
+
+        {/* Question Flow Component */}
+        <QuestionFlow
+          absenceType={absenceTypes.find(type => type.id === formData.absence_type_id)?.name || ''}
+          reasonCategory={formData.reason_category}
+          currentUserId={currentUser?.id || 0}
+          onAnswersChange={setQuestionAnswers}
+        />
+
+        {/* Conversation Capture Component */}
+        <ConversationCapture
+          onConversationChange={setConversation}
+        />
 
         <Divider style={{ margin: '1.5rem 0' }} />
 

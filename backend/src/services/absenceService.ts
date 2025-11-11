@@ -210,4 +210,51 @@ export class AbsenceService {
 
     return await query.orderBy('created_at', 'desc').execute()
   }
+  static async getAbsenceTypes() {
+    return await db
+      .selectFrom('absence_types')
+      .selectAll()
+      .where('is_active', '=', true)
+      .orderBy('name')
+      .execute()
+  }
+
+  static async saveConversation(
+    absenceId: number,
+    conversation: Array<{
+      id: string
+      question: string
+      answer: string
+      timestamp: Date
+    }>,
+    recordedById: number
+  ) {
+    const results = []
+    
+    for (const entry of conversation) {
+      const result = await db
+        .insertInto('communication_log')
+        .values({
+          absence_id: absenceId,
+          communication_type: 'In-Person',
+          direction: 'Inbound',
+          participant_ids: JSON.stringify([recordedById]),
+          summary: `Q: ${entry.question} | A: ${entry.answer}`,
+          key_points: JSON.stringify([
+            `Question: ${entry.question}`,
+            `Answer: ${entry.answer}`
+          ]),
+          action_items: JSON.stringify([]),
+          follow_up_required: false,
+          sentiment_score: null,
+          communication_date: entry.timestamp
+        })
+        .returningAll()
+        .executeTakeFirst()
+      
+      results.push(result)
+    }
+
+    return results
+  }
 }

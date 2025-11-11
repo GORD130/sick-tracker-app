@@ -82,6 +82,17 @@ router.get('/active', async (_req, res) => {
   }
 })
 
+// GET /api/absences/types - Get all absence types
+router.get('/types', async (_req, res) => {
+  try {
+    const absenceTypes = await AbsenceService.getAbsenceTypes()
+    res.json(absenceTypes)
+  } catch (error) {
+    console.error('Error fetching absence types:', error)
+    res.status(500).json({ error: 'Failed to fetch absence types' })
+  }
+})
+
 // GET /api/absences/statistics - Get absence statistics
 router.get('/statistics', async (_req, res) => {
   try {
@@ -241,6 +252,33 @@ router.get('/manager/:managerId', async (req, res) => {
   } catch (error) {
     console.error('Error fetching manager absences:', error)
     res.status(500).json({ error: 'Failed to fetch manager absences' })
+  }
+})
+
+// POST /api/absences/:id/conversation - Save conversation details for an absence
+router.post('/:id/conversation', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id)
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid absence ID' })
+    }
+
+    const { conversation, recorded_by_id } = req.body
+    
+    if (!conversation || !Array.isArray(conversation) || !recorded_by_id) {
+      return res.status(400).json({ error: 'Conversation array and recorded_by_id are required' })
+    }
+
+    // Save conversation to communication_log table
+    const savedConversation = await AbsenceService.saveConversation(id, conversation, recorded_by_id)
+    
+    res.json({
+      success: true,
+      data: savedConversation
+    })
+  } catch (error) {
+    console.error('Error saving conversation:', error)
+    res.status(500).json({ error: 'Failed to save conversation' })
   }
 })
 
